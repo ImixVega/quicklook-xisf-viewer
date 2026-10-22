@@ -16,6 +16,12 @@
 - Preview up to 1800 px on the longer side, with asynchronous decoding.
 - **v0.2.1:** Large Drizzle images (up to 12 GiB decoded) via memory-mapped I/O and streaming ZSTD/zlib to temporary disk storage. Requires adequate free TEMP space; large LZ4 blocks remain limited.
 
+## Download compiled plugin
+
+**[Download QuickLook XISF Viewer v0.2.1 (.qlplugin)](https://github.com/ImixVega/quicklook-xisf-viewer/releases/download/v0.2.1/QuickLook.Plugin.XisfViewer.qlplugin)** · [Release notes](https://github.com/ImixVega/quicklook-xisf-viewer/releases/tag/v0.2.1)
+
+Quick install: with QuickLook running, select the downloaded `.qlplugin` in File Explorer, press **Space**, click **Install**, and fully restart QuickLook from the system tray. **No .NET SDK or compilation needed** for the published plugin.
+
 ## Requirements
 
 - Windows 10/11 (x64) and [QuickLook for Windows](https://github.com/QL-Win/QuickLook/releases).
