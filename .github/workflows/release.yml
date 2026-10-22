@@ -1,0 +1,82 @@
+name: Build and publish QuickLook v0.2.1
+
+on:
+  push:
+    paths:
+      - .github/workflows/release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Obtain QuickLook API assembly from official release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archiveDir = Join-Path $env:RUNNER_TEMP 'ql-download'
+          $expandDir = Join-Path $env:RUNNER_TEMP 'ql-extracted'
+          New-Item -ItemType Directory $archiveDir,$expandDir -Force | Out-Null
+          gh release download 4.5.0 --repo QL-Win/QuickLook --pattern 'QuickLook-4.5.0.7z' --dir $archiveDir
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot download official QuickLook 4.5.0 release' }
+          $sevenZip = Join-Path $env:ProgramFiles '7-Zip\7z.exe'
+          if (-not (Test-Path $sevenZip)) { throw '7-Zip not available on Windows runner' }
+          & $sevenZip x (Join-Path $archiveDir 'QuickLook-4.5.0.7z') "-o$expandDir" -y | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to extract QuickLook release' }
+          $apiDll = Get-ChildItem -LiteralPath $expandDir -Recurse -File -Filter 'QuickLook.Common.dll' | Select-Object -First 1
+          if (-not $apiDll) { throw 'QuickLook.Common.dll not found in official release' }
+          Write-Host "Using $($apiDll.FullName)"
+          & .\Build.ps1 -QuickLookCommonDll $apiDll.FullName
+          if ($LASTEXITCODE -ne 0) { throw 'Plugin compilation failed' }
+
+      - name: Verify installable .qlplugin package
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.IO.Compression
+          $file = Join-Path $PWD 'QuickLook.Plugin.XisfViewer.qlplugin'
+          if (-not (Test-Path $file)) { throw 'Missing .qlplugin' }
+          $zip = [IO.Compression.ZipFile]::OpenRead($file)
+          try {
+            $names = @($zip.Entries | ForEach-Object FullName)
+            foreach ($required in @('QuickLook.Plugin.XisfViewer.dll','QuickLook.Plugin.Metadata.config','ZstdSharp.dll')) {
+              if ($names -notcontains $required) { throw "Missing $required in plugin archive" }
+            }
+          } finally { $zip.Dispose() }
+
+      - name: Publish verified plugin in GitHub Releases
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $file = Join-Path $PWD 'QuickLook.Plugin.XisfViewer.qlplugin'
+          $sha = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$sha  QuickLook.Plugin.XisfViewer.qlplugin" | Set-Content -Path 'SHA256SUMS.txt' -Encoding ascii
+          $notes = @'
+          **QuickLook XISF Viewer v0.2.1 (Windows 10/11)**
+
+          - Free FITS-independent XISF viewer with automatic PixInsight-like screen stretch.
+          - ZSTD/zlib/LZ4, Bayer, grayscale/RGB; large Drizzle images supported using temporary disk space.
+          - Tested on actual PixInsight XISF Drizzle image in Windows 10.
+          - Experimental community software; not all XISF variants are supported.
+
+          **Install**: install QuickLook first, download the attached `QuickLook.Plugin.XisfViewer.qlplugin`, select it in File Explorer, press **Space**, choose **Install**, then completely restart QuickLook. Select an `.xisf` and press Space.
+
+          **Note:** This is not a code archive. The `.qlplugin` asset contains the compiled plugin and its runtime dependency. Your original XISF data is never modified.
+          '@
+          $notes | Set-Content -Path 'RELEASE_NOTES.txt' -Encoding utf8
+          gh release create 'v0.2.1' $file 'SHA256SUMS.txt' --target $env:GITHUB_SHA --title 'QuickLook XISF Viewer v0.2.1' --notes-file 'RELEASE_NOTES.txt'
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub Release creation failed' }
