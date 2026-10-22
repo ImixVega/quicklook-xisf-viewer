@@ -1,4 +1,4 @@
-# QuickLook XISF Viewer — wersja 0.2
+# QuickLook XISF Viewer — wersja 0.2.1
 
 **Darmowy podgląd plików `.xisf` ze stretchem pod Spacją w Eksploratorze Windows.**
 
@@ -30,3 +30,20 @@ Budowanie wymaga jednorazowego pobrania bezpłatnej zależności `ZstdSharp.Port
 Do miniaturek w folderze służy osobny projekt: [windows-xisf-thumbnails](https://github.com/ImixVega/windows-xisf-thumbnails).
 
 **Licencja:** MIT ([LICENSE.txt](LICENSE.txt)).
+
+
+## Wersja 0.2.1: duże obrazy Drizzle (testowane w Windows 10)
+
+Gdy obraz po dekompresji ma ponad 1000 MiB, zamiast alokować jedną tablicę w RAM,
+wtyczka korzysta z pliku pamięci mapowanej.
+
+- Limit rozmiaru obrazu po dekompresji: 12 GiB.
+- Bez kompresji: QuickLook mapuje istniejący plik bez tworzenia kopii.
+- ZSTD/ZSTD+SH oraz zlib: dane są dekompresowane strumieniowo do dysku TEMP.
+- W miniaturkach Eksploratora źródłem jest IStream, dlatego również dane nieskompresowane
+  mogą wymagać pliku tymczasowego.
+- Konieczna jest dostępna ilość miejsca na dysku TEMP co najmniej rozmiar obrazu po rozpakowaniu
+  plus zapas 256 MiB.
+- LZ4/LZ4HC: przy bardzo dużych pojedynczych subblokach (>128 MiB) nadal występuje ograniczenie.
+- Tryb dużych obrazów jest nadal eksperymentalny, ale przeszedł test na rzeczywistym M42 Drizzle w Windows 10.
+- Dane źródłowe XISF nie są modyfikowane.

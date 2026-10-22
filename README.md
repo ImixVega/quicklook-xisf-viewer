@@ -14,6 +14,7 @@
 - Bayer CFA detection where `ColorFilterArray` is present.
 - `zlib`, `lz4`, `lz4hc`, `zstd`, `+sh` (byte shuffle), and XISF subblocks.
 - Preview up to 1800 px on the longer side, with asynchronous decoding.
+- **v0.2.1:** Large Drizzle images (up to 12 GiB decoded) via memory-mapped I/O and streaming ZSTD/zlib to temporary disk storage. Requires adequate free TEMP space; large LZ4 blocks remain limited.
 
 ## Requirements
 
@@ -39,13 +40,13 @@ Select the generated `QuickLook.Plugin.XisfViewer.qlplugin` in Windows Explorer,
 
 ## Testing and compatibility
 
-Real `.xisf` files saved by PixInsight (including ZSTD) were successfully opened with version 0.2 on Windows 10 in October 2026. `tests/` contains **synthetic** XISF fixtures, not personal astrophotos. To verify the fixtures on a system with Python and the `zstd` CLI:
+Real `.xisf` files saved by PixInsight (including ZSTD and large Drizzle stacks) were successfully opened with v0.2.1 on Windows 10 in October 2026. `tests/` contains **synthetic** XISF fixtures, not personal astrophotos. To verify the fixtures on a system with Python and the `zstd` CLI:
 
 ```bash
 python tests/verify_test_xisf.py
 ```
 
-This is a community prototype. The stretch is similar to PixInsight STF but is **not** a byte-for-byte implementation. It does not support every XISF variant; in particular, multidimensional images, distributed XISF, and complex sample types are outside the current scope.
+This is a community prototype. The stretch is similar to PixInsight STF but is **not** a byte-for-byte implementation. The large-image streaming mode is still experimental. It does not support every XISF variant; in particular, multidimensional images, distributed XISF, and complex sample types are outside the current scope.
 
 ## Related project
 
