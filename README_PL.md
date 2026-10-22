@@ -4,6 +4,12 @@
 
 Projekt wykorzystuje QuickLook; działa niezależnie od istniejącej wtyczki FITS. Prawdziwe pliki XISF z kompresją ZSTD zapisane przez PixInsight zostały otwarte poprawnie podczas testów na Windows 10 (październik 2026).
 
+## Pobierz gotową wtyczkę
+
+**[QuickLook XISF Viewer v0.2.1 — pobierz .qlplugin](https://github.com/ImixVega/quicklook-xisf-viewer/releases/download/v0.2.1/QuickLook.Plugin.XisfViewer.qlplugin)** · [Opis wydania](https://github.com/ImixVega/quicklook-xisf-viewer/releases/tag/v0.2.1)
+
+Uruchom QuickLook, zaznacz pobrany plik `.qlplugin` w Eksploratorze, naciśnij **Spację**, wybierz **Install** i zamknij oraz uruchom ponownie QuickLook. **Gotowa wersja nie wymaga .NET SDK ani samodzielnej kompilacji.**
+
 ## Co działa
 
 - Liniowe obrazy mono i RGB z automatycznym rozciąganiem zbliżonym do STF (mediana/MAD).
